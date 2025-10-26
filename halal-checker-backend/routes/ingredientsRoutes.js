@@ -13,7 +13,7 @@ router.get('/', async(req,res) => {
 
 // Post a new ingredient
 router.post('/', async (req, res) => {
-  const { name, status, description, imageUrl } = req.body;
+  const { name, status, description, imageUrl, userId } = req.body;
 
   // Validate request body
   if (!name || !status || !description) {
@@ -26,6 +26,7 @@ router.post('/', async (req, res) => {
     description, 
     imageUrl: imageUrl || '', // Optional field with default
     votes: { halal: 0, haram: 0, doubtful: 0 }, 
+    userId,
   });
 
   try {
