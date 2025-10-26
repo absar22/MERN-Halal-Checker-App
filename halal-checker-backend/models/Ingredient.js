@@ -26,7 +26,11 @@ const IngredientSchema = new mongoose.Schema({
     createAt:{
         type:Date,
         default:Date.now
-    }
+    },
+    userId: {
+    type: String,
+    required: true
+  }
 
 })
 
