@@ -19,9 +19,13 @@ const IngredientSchema = new mongoose.Schema({
         required: true
     },
     votes:{
-        halal:Number,
-        haram:Number,
-        doubtful:Number
+       halal: { type: Number, default: 0 },
+    haram: { type: Number, default: 0 },
+    doubtful: { type: Number, default: 0 },
+    },
+    createAt:{
+        type:Date,
+        default:Date.now
     }
 
 })
