@@ -23,9 +23,13 @@ const IngredientSchema = new mongoose.Schema({
     haram: { type: Number, default: 0 },
     doubtful: { type: Number, default: 0 },
     },
-    createAt:{
-        type:Date,
-        default:Date.now
+    createdAt: {
+    type: Date,
+    default: Date.now
+    },
+    lastUpdated:{
+    type: Date,
+    default: Date.now
     },
     userId: {
     type: String,

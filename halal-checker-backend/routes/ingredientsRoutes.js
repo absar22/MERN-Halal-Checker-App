@@ -5,7 +5,7 @@ const ingredients = require('../controllers/ingredient')
 
 router.get('/', ingredients.getIngredients);             
 router.post('/', ingredients.addIngredient);            
-// router.put('/:id', ingredients.updateIngredient);        
+router.put('/:id', ingredients.updateIngredient);        
 router.delete('/:id', ingredients.deleteIngredient);
 
 module.exports = router

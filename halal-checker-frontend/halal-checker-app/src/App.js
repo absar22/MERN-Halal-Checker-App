@@ -6,8 +6,9 @@ function App() {
   const [status, setStatus] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [editingId, setEditingId] = useState(null); //  new state to track edit mode
 
-  // ✅ Fetch all ingredients when component mounts
+  // Fetch all ingredients
   useEffect(() => {
     fetch('http://localhost:8001/api/ingredients')
       .then(res => res.json())
@@ -15,30 +16,52 @@ function App() {
       .catch(err => console.error('Error fetching ingredients:', err));
   }, []);
 
-  // ✅ Add new ingredient
-  function addIngredient(e) {
+  // Add or Update Ingredient
+  function handleSubmit(e) {
     e.preventDefault();
 
-    const newIngredient = { name, status, description, imageUrl };
+    const ingredientData = { name, status, description, imageUrl };
 
-    fetch('http://localhost:8001/api/ingredients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newIngredient)
-    })
-      .then(res => res.json())
-      .then(data => {
-        setIngredients([...ingredients, data]);
-        // clear input fields
-        setName('');
-        setStatus('');
-        setDescription('');
-        setImageUrl('');
+    if (editingId) {
+      // ✅ Update existing ingredient
+      fetch(`http://localhost:8001/api/ingredients/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ingredientData)
       })
-      .catch(err => console.error('Error adding ingredient:', err));
+        .then(res => res.json())
+        .then(() => {
+          setIngredients(ingredients.map(item =>
+            item._id === editingId ? { ...item, ...ingredientData } : item
+          ));
+          resetForm();
+        })
+        .catch(err => console.error('Error updating ingredient:', err));
+    } else {
+      // ✅ Add new ingredient
+      fetch('http://localhost:8001/api/ingredients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ingredientData)
+      })
+        .then(res => res.json())
+        .then(data => {
+          setIngredients([...ingredients, data]);
+          resetForm();
+        })
+        .catch(err => console.error('Error adding ingredient:', err));
+    }
   }
 
-  // ✅ Delete ingredient
+  function resetForm() {
+    setName('');
+    setStatus('');
+    setDescription('');
+    setImageUrl('');
+    setEditingId(null);
+  }
+
+  // Delete ingredient
   function deleteIngredient(id) {
     fetch(`http://localhost:8001/api/ingredients/${id}`, { method: 'DELETE' })
       .then(() => {
@@ -47,39 +70,36 @@ function App() {
       .catch(err => console.error('Error deleting ingredient:', err));
   }
 
+  // Edit ingredient
+  function editIngredient(item) {
+    setEditingId(item._id);
+    setName(item.name);
+    setStatus(item.status);
+    setDescription(item.description);
+    setImageUrl(item.imageUrl);
+  }
+
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>🕌 Halal Ingredient Checker</h1>
 
-      {/* Add Ingredient Form */}
-      <form onSubmit={addIngredient} style={{ marginBottom: '20px' }}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Status (Halal/Haram/Doubtful)"
-          value={status}
-          onChange={e => setStatus(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Image URL"
-          value={imageUrl}
-          onChange={e => setImageUrl(e.target.value)}
-        />
-        <button type="submit">Add Ingredient</button>
+      {/* Add / Edit Form */}
+      <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+        <input type="text" placeholder="Name" value={name}
+          onChange={e => setName(e.target.value)} required />
+        <input type="text" placeholder="Status (Halal/Haram/Doubtful)" value={status}
+          onChange={e => setStatus(e.target.value)} required />
+        <input type="text" placeholder="Description" value={description}
+          onChange={e => setDescription(e.target.value)} />
+        <input type="text" placeholder="Image URL" value={imageUrl}
+          onChange={e => setImageUrl(e.target.value)} />
+
+        <button type="submit">
+          {editingId ? 'Update Ingredient' : 'Add Ingredient'}
+        </button>
+        {editingId && (
+          <button type="button" onClick={resetForm}>Cancel</button>
+        )}
       </form>
 
       {/* Ingredient List */}
@@ -88,12 +108,14 @@ function App() {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {ingredients.map(item => (
-            <li key={item._id} style={{ marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
+            <li key={item._id}
+              style={{ marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
               <h3>{item.name}</h3>
               <p><strong>Status:</strong> {item.status}</p>
               {item.description && <p>{item.description}</p>}
               {item.imageUrl && <img src={item.imageUrl} alt={item.name} width="100" />}
               <br />
+              <button onClick={() => editIngredient(item)}>Edit</button>
               <button onClick={() => deleteIngredient(item._id)}>Delete</button>
             </li>
           ))}
